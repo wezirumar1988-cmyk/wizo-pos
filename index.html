@@ -14,11 +14,11 @@
 <div id="login" class="login">
  <div class="loginbox">
   <div class="loginbrand"><div class="logo">W</div><h1>WIZO POS</h1><p>Point of Sale &amp; Business Management</p></div>
-  <div class="field"><label>Email</label><input id="loginEmail" type="email" placeholder="owner@example.com" value="demo@wizo.pos"></div>
-  <div class="field"><label>Password</label><input id="loginPass" type="password" placeholder="Enter password" value="demo1234"></div>
-  <button class="gold" onclick="login()">Sign In to Demo</button>
-  <div class="row" style="margin-top:10px"><button class="linkbtn" onclick="toast('Password reset requires a connected authentication service.')">Forgot password?</button><button class="linkbtn" onclick="toast('Account registration will be enabled with Supabase.')">Create account</button></div>
-  <p class="small muted" style="text-align:center">Demo preview · Use any email and password</p>
+  <div class="field"><label>Email</label><input id="loginEmail" type="email" placeholder="owner@example.com" value=""></div>
+  <div class="field"><label>Password</label><input id="loginPass" type="password" placeholder="Enter password" value=""></div>
+  <button class="gold" onclick="login()">Sign In</button>
+  <div class="row" style="margin-top:10px"><button class="linkbtn" onclick="resetPassword()">Forgot password?</button><button class="linkbtn" onclick="createAccount()">Create account</button></div>
+  <p id="authMessage" class="small muted" style="text-align:center">Sign in with your WIZO POS account.</p>
  </div>
 </div>
 <div id="app" class="app hidden">
@@ -47,7 +47,11 @@
  </main>
 </div>
 <div id="modalRoot"></div><div id="toastRoot"></div>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
+const SUPABASE_URL='https://rkdowbgbwsyhmlzfiynl.supabase.co';
+const SUPABASE_PUBLISHABLE_KEY='sb_publishable_RguZsGx7_dt-p3vvZ3BZbA_U563nFWp';
+const supabaseClient=window.supabase?.createClient(SUPABASE_URL,SUPABASE_PUBLISHABLE_KEY);
 const $=id=>document.getElementById(id);
 const currencies={ETB:'ETB — Ethiopian Birr',SAR:'SAR — Saudi Riyal',USD:'USD — US Dollar',EUR:'EUR — Euro',AED:'AED — UAE Dirham'};
 let currency=localStorage.getItem('wizo_currency')||'ETB';
@@ -57,8 +61,34 @@ if(!db.businesses)db.businesses=[];if(!db.subscriptionRequests)db.subscriptionRe
 let page='dashboard',cart=[],lang='English';
 function save(){localStorage.setItem('wizo_demo_db',JSON.stringify(db))}
 function toast(s){$('toastRoot').innerHTML='<div class="toast">'+s+'</div>';setTimeout(()=>$('toastRoot').innerHTML='',3000)}
-function login(){ $('login').classList.add('hidden');$('app').classList.remove('hidden');render()}
-function logout(){$('app').classList.add('hidden');$('login').classList.remove('hidden')}
+async function login(){
+ const email=$('loginEmail').value.trim(),password=$('loginPass').value;
+ if(!supabaseClient)return authMessage('Authentication service could not load. Check your internet connection.');
+ if(!email||!password)return authMessage('Enter your email and password.');
+ authMessage('Signing in…');
+ const {data,error}=await supabaseClient.auth.signInWithPassword({email,password});
+ if(error)return authMessage(error.message);
+ window.wizoSession=data.session;
+ $('login').classList.add('hidden');$('app').classList.remove('hidden');render();
+}
+async function createAccount(){
+ const email=$('loginEmail').value.trim(),password=$('loginPass').value;
+ if(!supabaseClient)return authMessage('Authentication service could not load.');
+ if(!email||password.length<6)return authMessage('Enter an email and a password of at least 6 characters.');
+ authMessage('Creating account…');
+ const {error}=await supabaseClient.auth.signUp({email,password});
+ authMessage(error?error.message:'Account request sent. Check your email to confirm, if confirmation is enabled.');
+}
+async function resetPassword(){
+ const email=$('loginEmail').value.trim();
+ if(!supabaseClient)return authMessage('Authentication service could not load.');
+ if(!email)return authMessage('Enter your email first.');
+ const {error}=await supabaseClient.auth.resetPasswordForEmail(email,{redirectTo:location.origin+location.pathname});
+ authMessage(error?error.message:'If the account exists, a password reset email has been sent.');
+}
+function authMessage(message){const el=$('authMessage');if(el)el.textContent=message;}
+async function logout(){if(supabaseClient)await supabaseClient.auth.signOut();window.wizoSession=null;$('app').classList.add('hidden');$('login').classList.remove('hidden')}
+if(supabaseClient){supabaseClient.auth.getSession().then(({data})=>{if(data.session){window.wizoSession=data.session;$('login').classList.add('hidden');$('app').classList.remove('hidden');render()}})}
 $('nav').addEventListener('click',e=>{let b=e.target.closest('button[data-page]');if(!b)return;page=b.dataset.page;document.querySelectorAll('.nav button').forEach(x=>x.classList.toggle('active',x===b));render()});
 function head(title,desc,button=''){return `<div class="pagehead"><div><h1>${title}</h1><div class="sub">${desc}</div></div>${button}</div>`}
 function stat(label,val,note=''){return `<div class="card"><div class="statlabel">${label}</div><div class="statval">${val}</div><div class="statnote">${note}</div></div>`}
