@@ -64,7 +64,11 @@
  </main>
 </div>
 <div id="modalRoot"></div><div id="toastRoot"></div>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
+const SUPABASE_URL="https://rkdowbgbwsyhmlzfiynl.supabase.co";
+const SUPABASE_ANON_KEY="sb_publishable_RguZsGx7_dt-p3vvZ3BZbA_U563nFWp";
+const supabaseClient=window.supabase.createClient(SUPABASE_URL,SUPABASE_ANON_KEY);
 const $=id=>document.getElementById(id);
 const currencies={ETB:'ETB — Ethiopian Birr',SAR:'SAR — Saudi Riyal',USD:'USD — US Dollar',EUR:'EUR — Euro',AED:'AED — UAE Dirham'};
 let currency=localStorage.getItem('wizo_currency')||'ETB';
@@ -76,10 +80,27 @@ function save(){localStorage.setItem('wizo_demo_db',JSON.stringify(db))}
 function toast(s){$('toastRoot').innerHTML='<div class="toast">'+s+'</div>';setTimeout(()=>$('toastRoot').innerHTML='',3000)}
 function showRegister(){$('loginPanel').classList.add('hidden');$('registerPanel').classList.remove('hidden')}
 function showLogin(){$('registerPanel').classList.add('hidden');$('loginPanel').classList.remove('hidden')}
-function submitRegistration(e){e.preventDefault();const f=new FormData(e.target);if((f.get('password')||'').length<8){toast('Password must be at least 8 characters');return}toast('Registration form is ready, but Supabase Auth and business saving must be connected before accounts can be created.')}
-function forgotPassword(){const email=$('loginEmail').value.trim();if(!email){toast('Enter your email address first');$('loginEmail').focus();return}toast('Password reset needs the Supabase password-reset connection.')}
-function login(){if(!$('loginEmail').value.trim()||!$('loginPass').value){toast('Enter your email and password');return}toast('Sign in is not connected to Supabase yet.');}
-function logout(){$('app').classList.add('hidden');$('login').classList.remove('hidden')}
+async function submitRegistration(e){
+ e.preventDefault();const form=e.target,btn=form.querySelector('button[type=submit]'),f=new FormData(form);
+ const businessName=String(f.get('businessName')||'').trim(),ownerName=String(f.get('ownerName')||'').trim(),email=String(f.get('email')||'').trim().toLowerCase(),password=String(f.get('password')||'');
+ if(!businessName||!ownerName||!email||password.length<8){toast('Complete required fields. Password must be at least 8 characters.');return}
+ btn.disabled=true;btn.textContent='Creating account…';
+ try{
+  const {data,error}=await supabaseClient.auth.signUp({email,password,options:{emailRedirectTo:'https://wezirumar1988-cmyk.github.io/wizo-pos/',data:{business_name:businessName,owner_name:ownerName,phone:String(f.get('phone')||'').trim(),language:String(f.get('language')||'English'),currency:String(f.get('currency')||'ETB')}}});
+  if(error)throw error;
+  if(data.session){toast('Account created and signed in. Business profile and POS data still need database connection.');showApp()}
+  else toast('Account created. Check your email to confirm, then sign in. Business profile saving is not connected yet.');
+  form.reset();
+ }catch(err){toast(err.message||'Account creation failed')}
+ finally{btn.disabled=false;btn.textContent='Create Account'}
+}
+async function forgotPassword(){const email=$('loginEmail').value.trim();if(!email){toast('Enter your email address first');$('loginEmail').focus();return}
+ try{const {error}=await supabaseClient.auth.resetPasswordForEmail(email,{redirectTo:'https://wezirumar1988-cmyk.github.io/wizo-pos/'});if(error)throw error;toast('Password reset email sent. Check your inbox and spam folder.')}catch(err){toast(err.message||'Could not send reset email')}}
+async function login(){const email=$('loginEmail').value.trim(),password=$('loginPass').value;if(!email||!password){toast('Enter your email and password');return}
+ try{const {error}=await supabaseClient.auth.signInWithPassword({email,password});if(error)throw error;showApp();toast('Signed in successfully.')}catch(err){toast(err.message||'Sign in failed')}}
+function showApp(){$('login').classList.add('hidden');$('app').classList.remove('hidden');render()}
+async function logout(){await supabaseClient.auth.signOut();$('app').classList.add('hidden');$('login').classList.remove('hidden')}
+supabaseClient.auth.getSession().then(({data})=>{if(data.session)showApp()});
 $('nav').addEventListener('click',e=>{let b=e.target.closest('button[data-page]');if(!b)return;page=b.dataset.page;document.querySelectorAll('.nav button').forEach(x=>x.classList.toggle('active',x===b));render()});
 function head(title,desc,button=''){return `<div class="pagehead"><div><h1>${title}</h1><div class="sub">${desc}</div></div>${button}</div>`}
 function stat(label,val,note=''){return `<div class="card"><div class="statlabel">${label}</div><div class="statval">${val}</div><div class="statnote">${note}</div></div>`}
