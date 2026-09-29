@@ -5,42 +5,38 @@
 <meta name="theme-color" content="#111111"><title>WIZO POS | Business Management</title>
 <style>
 :root{--bg:#f4f5f7;--card:#fff;--ink:#202124;--muted:#70757d;--line:#e6e8ec;--gold:#d6a928;--dark:#151515;--green:#16834a;--red:#c83e3e;--shadow:0 8px 28px #17202b0d}
-*{box-sizing:border-box}body{margin:0;font:14px/1.45 Inter,Segoe UI,Arial,sans-serif;background:var(--bg);color:var(--ink)}button,input,select,textarea{font:inherit}button{cursor:pointer;border:0;border-radius:9px;padding:10px 14px;background:var(--dark);color:#fff;font-weight:600}button.gold{background:var(--gold);color:#171717}button.light{background:#f0f1f3;color:#252525}button.danger{background:#fff0f0;color:var(--red)}button:disabled{opacity:.5;cursor:not-allowed}button:not(:disabled):active{filter:brightness(.88);transform:translateY(1px)}button.gold:hover{background:#e7bd42}button.light:hover{background:#e5e7eb;color:#111}button.danger:hover{background:#ffdede}.nav button:active{background:#4a432b;color:#fff}.app{display:flex;min-height:100vh}.side{width:248px;background:#171717;color:#eee;padding:20px 14px;display:flex;flex-direction:column;gap:16px}.brand{display:flex;align-items:center;gap:10px;padding:4px 8px 16px;border-bottom:1px solid #333}.logo{width:42px;height:42px;border:2px solid var(--gold);border-radius:13px;display:grid;place-items:center;color:var(--gold);font-weight:900;font-size:17px}.brand b{font-size:19px;letter-spacing:1px}.brand small{display:block;color:#aaa;font-size:11px}.nav{display:grid;gap:5px}.nav button{background:transparent;color:#c9c9c9;text-align:left;padding:11px 12px;font-weight:500;border-radius:8px}.nav button.active,.nav button:hover{background:#2b2b2b;color:#fff}.nav button.active{box-shadow:inset 3px 0 var(--gold);background:#353020;color:#fff}.nav button:focus-visible,button:focus-visible{outline:3px solid var(--gold);outline-offset:2px}.sidefoot{margin-top:auto;color:#999;font-size:11px;padding:8px}.main{flex:1;min-width:0}.top{height:66px;background:#fff;border-bottom:1px solid var(--line);display:flex;align-items:center;justify-content:space-between;padding:0 26px;position:sticky;top:0;z-index:5}.top .right{display:flex;align-items:center;gap:10px}.pill{background:#f4f4f4;border-radius:20px;padding:7px 10px;color:#555;font-size:12px}.content{padding:26px;max-width:1500px;margin:auto}.pagehead{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:20px}.pagehead h1{margin:0;font-size:25px}.sub{color:var(--muted);margin-top:4px}.grid{display:grid;gap:15px}.stats{grid-template-columns:repeat(4,minmax(0,1fr));margin-bottom:18px}.two{grid-template-columns:1.35fr 1fr}.three{grid-template-columns:repeat(3,minmax(0,1fr))}.card{background:var(--card);border:1px solid var(--line);border-radius:13px;padding:18px;box-shadow:var(--shadow);min-width:0}.statlabel{color:var(--muted);font-size:12px}.statval{font-size:25px;font-weight:750;margin-top:8px}.statnote{font-size:11px;color:#888;margin-top:5px}.card h3{margin:0 0 14px;font-size:15px}.toolbar{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:14px}.toolbar input,.toolbar select{width:auto;min-width:170px}.field{display:grid;gap:5px;margin-bottom:12px}.field label{font-size:12px;color:#555;font-weight:600}.field input,.field select,.field textarea,input,select,textarea{border:1px solid #dfe2e6;border-radius:8px;padding:10px;background:#fff;min-width:0;max-width:100%}.formgrid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}.formgrid .field{margin:0}.tablewrap{overflow:auto;border:1px solid var(--line);border-radius:10px}table{border-collapse:collapse;width:100%;min-width:580px;background:#fff}th,td{text-align:left;padding:11px 12px;border-bottom:1px solid #eee;white-space:nowrap}th{background:#fafafa;color:#666;font-size:11px;text-transform:uppercase;letter-spacing:.4px}td{font-size:13px}tr:last-child td{border-bottom:0}.empty{text-align:center;padding:28px;color:#888}.tag{display:inline-block;border-radius:20px;padding:3px 8px;background:#eef7f0;color:var(--green);font-size:11px}.tag.warn{background:#fff6df;color:#9b6c00}.tag.bad{background:#fff0f0;color:var(--red)}.muted{color:var(--muted)}.row{display:flex;align-items:center;justify-content:space-between;gap:10px}.total{font-size:20px;font-weight:750}.actions{display:flex;gap:6px}.actions button{padding:6px 9px;font-size:11px}.hidden{display:none!important}.notice{background:#fff8e5;border:1px solid #f2df9c;color:#72550b;padding:12px;border-radius:9px;margin-bottom:15px}.login{min-height:100vh;display:grid;place-items:center;background:#151515;padding:28px 20px}.authscreen{align-content:center}.authbox{width:min(620px,100%);padding:34px}.signupbox{max-height:calc(100vh - 40px);overflow:auto}.authlinks{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-top:16px}.authgrid{grid-template-columns:repeat(2,minmax(0,1fr));margin-bottom:12px}.logo-preview{width:64px;height:64px;object-fit:contain;border:1px solid var(--line);border-radius:10px;padding:5px;margin-top:6px}.loginbox{width:min(420px,100%);background:#fff;border-radius:18px;padding:28px;box-shadow:0 20px 60px #0005}.loginbrand{text-align:center;margin-bottom:22px}.loginbrand .logo{margin:0 auto 10px;width:60px;height:60px;font-size:23px}.loginbrand h1{margin:0;font-size:25px}.loginbrand p{margin:4px;color:#777}.loginbox .field{margin:14px 0}.loginbox button{width:100%;padding:12px}.linkbtn{background:transparent;color:#9a7510;padding:6px}.mobilemenu{display:none}.modalback{position:fixed;inset:0;background:#0008;z-index:20;display:grid;place-items:center;padding:15px}.modal{background:white;border-radius:14px;padding:20px;width:min(620px,100%);max-height:90vh;overflow:auto}.modalhead{display:flex;justify-content:space-between;align-items:center;margin-bottom:15px}.modalhead h2{margin:0;font-size:18px}.toast{position:fixed;right:20px;bottom:20px;background:#222;color:#fff;padding:12px 16px;border-radius:10px;z-index:40;box-shadow:var(--shadow)}.small{font-size:11px}.hr{border:0;border-top:1px solid var(--line);margin:16px 0}
+*{box-sizing:border-box}body{margin:0;font:14px/1.45 Inter,Segoe UI,Arial,sans-serif;background:var(--bg);color:var(--ink)}button,input,select,textarea{font:inherit}button{cursor:pointer;border:0;border-radius:9px;padding:10px 14px;background:var(--dark);color:#fff;font-weight:600}button.gold{background:var(--gold);color:#171717}button.light{background:#f0f1f3;color:#252525}button.danger{background:#fff0f0;color:var(--red)}button:disabled{opacity:.5;cursor:not-allowed}button:not(:disabled):active{filter:brightness(.88);transform:translateY(1px)}button.gold:hover{background:#e7bd42}button.light:hover{background:#e5e7eb;color:#111}button.danger:hover{background:#ffdede}.nav button:active{background:#4a432b;color:#fff}.app{display:flex;min-height:100vh}.side{width:248px;background:#171717;color:#eee;padding:20px 14px;display:flex;flex-direction:column;gap:16px}.brand{display:flex;align-items:center;gap:10px;padding:4px 8px 16px;border-bottom:1px solid #333}.logo{width:42px;height:42px;border:2px solid var(--gold);border-radius:13px;display:grid;place-items:center;color:var(--gold);font-weight:900;font-size:17px}.brand b{font-size:19px;letter-spacing:1px}.brand small{display:block;color:#aaa;font-size:11px}.nav{display:grid;gap:5px}.nav button{background:transparent;color:#c9c9c9;text-align:left;padding:11px 12px;font-weight:500;border-radius:8px}.nav button.active,.nav button:hover{background:#2b2b2b;color:#fff}.nav button.active{box-shadow:inset 3px 0 var(--gold);background:#353020;color:#fff}.nav button:focus-visible,button:focus-visible{outline:3px solid var(--gold);outline-offset:2px}.sidefoot{margin-top:auto;color:#999;font-size:11px;padding:8px}.main{flex:1;min-width:0}.top{height:66px;background:#fff;border-bottom:1px solid var(--line);display:flex;align-items:center;justify-content:space-between;padding:0 26px;position:sticky;top:0;z-index:5}.top .right{display:flex;align-items:center;gap:10px}.pill{background:#f4f4f4;border-radius:20px;padding:7px 10px;color:#555;font-size:12px}.content{padding:26px;max-width:1500px;margin:auto}.pagehead{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:20px}.pagehead h1{margin:0;font-size:25px}.sub{color:var(--muted);margin-top:4px}.grid{display:grid;gap:15px}.stats{grid-template-columns:repeat(4,minmax(0,1fr));margin-bottom:18px}.two{grid-template-columns:1.35fr 1fr}.three{grid-template-columns:repeat(3,minmax(0,1fr))}.card{background:var(--card);border:1px solid var(--line);border-radius:13px;padding:18px;box-shadow:var(--shadow);min-width:0}.statlabel{color:var(--muted);font-size:12px}.statval{font-size:25px;font-weight:750;margin-top:8px}.statnote{font-size:11px;color:#888;margin-top:5px}.card h3{margin:0 0 14px;font-size:15px}.toolbar{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:14px}.toolbar input,.toolbar select{width:auto;min-width:170px}.field{display:grid;gap:5px;margin-bottom:12px}.field label{font-size:12px;color:#555;font-weight:600}.field input,.field select,.field textarea,input,select,textarea{border:1px solid #dfe2e6;border-radius:8px;padding:10px;background:#fff;min-width:0;max-width:100%}.formgrid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}.formgrid .field{margin:0}.tablewrap{overflow:auto;border:1px solid var(--line);border-radius:10px}table{border-collapse:collapse;width:100%;min-width:580px;background:#fff}th,td{text-align:left;padding:11px 12px;border-bottom:1px solid #eee;white-space:nowrap}th{background:#fafafa;color:#666;font-size:11px;text-transform:uppercase;letter-spacing:.4px}td{font-size:13px}tr:last-child td{border-bottom:0}.empty{text-align:center;padding:28px;color:#888}.tag{display:inline-block;border-radius:20px;padding:3px 8px;background:#eef7f0;color:var(--green);font-size:11px}.tag.warn{background:#fff6df;color:#9b6c00}.tag.bad{background:#fff0f0;color:var(--red)}.muted{color:var(--muted)}.row{display:flex;align-items:center;justify-content:space-between;gap:10px}.total{font-size:20px;font-weight:750}.actions{display:flex;gap:6px}.actions button{padding:6px 9px;font-size:11px}.hidden{display:none!important}.notice{background:#fff8e5;border:1px solid #f2df9c;color:#72550b;padding:12px;border-radius:9px;margin-bottom:15px}.login{min-height:100vh;display:grid;place-items:center;background:#151515;padding:20px}.loginbox{width:min(520px,100%);background:#fff;border-radius:18px;padding:28px;box-shadow:0 20px 60px #0005}.registerbox{width:min(760px,100%);background:#fff;border-radius:18px;padding:28px;box-shadow:0 20px 60px #0005;max-height:calc(100vh - 32px);overflow:auto}.registerhead{display:flex;align-items:center;justify-content:space-between;gap:12px}.registerbox .formgrid{grid-template-columns:repeat(2,minmax(0,1fr))}.registerbox button{min-width:120px}.logo-preview{width:52px;height:52px;border:1px dashed #bbb;border-radius:10px;display:grid;place-items:center;color:#999;background:#fafafa}@media(max-width:600px){.registerbox{padding:18px}.registerbox .formgrid{grid-template-columns:1fr}}.loginbrand{text-align:center;margin-bottom:22px}.loginbrand .logo{margin:0 auto 10px;width:60px;height:60px;font-size:23px}.loginbrand h1{margin:0;font-size:25px}.loginbrand p{margin:4px;color:#777}.loginbox .field{margin:14px 0}.loginbox button{width:100%;padding:12px}.linkbtn{background:transparent;color:#9a7510;padding:6px}.mobilemenu{display:none}.modalback{position:fixed;inset:0;background:#0008;z-index:20;display:grid;place-items:center;padding:15px}.modal{background:white;border-radius:14px;padding:20px;width:min(620px,100%);max-height:90vh;overflow:auto}.modalhead{display:flex;justify-content:space-between;align-items:center;margin-bottom:15px}.modalhead h2{margin:0;font-size:18px}.toast{position:fixed;right:20px;bottom:20px;background:#222;color:#fff;padding:12px 16px;border-radius:10px;z-index:40;box-shadow:var(--shadow)}.small{font-size:11px}.hr{border:0;border-top:1px solid var(--line);margin:16px 0}
 @media(max-width:1000px){.side{width:210px}.stats{grid-template-columns:repeat(2,minmax(0,1fr))}.two{grid-template-columns:1fr}}
 @media(max-width:700px){.side{display:none}.content{padding:16px}.top{padding:0 14px}.mobilemenu{display:inline-block}.stats{gap:9px}.card{padding:14px}.statval{font-size:21px}.formgrid,.three{grid-template-columns:1fr}.pagehead{align-items:flex-start;flex-direction:column}.top .right .pill{display:none}}
 </style>
 </head>
 <body>
-<div id="login" class="login authscreen">
- <div class="loginbox authbox" id="signinPanel">
+<div id="login" class="login">
+ <div class="loginbox" id="loginPanel">
   <div class="loginbrand"><div class="logo">W</div><h1>WIZO POS</h1><p>Point of Sale &amp; Business Management</p></div>
-  <form onsubmit="event.preventDefault();login()">
-   <div class="field"><label for="loginEmail">Email</label><input id="loginEmail" type="email" placeholder="name@example.com" autocomplete="username" required></div>
-   <div class="field"><label for="loginPass">Password</label><input id="loginPass" type="password" placeholder="Enter password" autocomplete="current-password" required></div>
-   <button class="gold" type="submit">Sign In</button>
-  </form>
-  <div class="authlinks"><button class="linkbtn" type="button" onclick="forgotPassword()">Forgot password?</button><button class="linkbtn" type="button" onclick="showSignup()">Create account</button></div>
+  <div class="field"><label>Email</label><input id="loginEmail" type="email" placeholder="owner@example.com" autocomplete="username"></div>
+  <div class="field"><label>Password</label><input id="loginPass" type="password" placeholder="Enter password" autocomplete="current-password"></div>
+  <button class="gold" onclick="login()">Sign In</button>
+  <div class="row" style="margin-top:10px"><button class="linkbtn" onclick="forgotPassword()">Forgot password?</button><button class="linkbtn" onclick="showRegister()">Create account</button></div>
  </div>
- <div class="loginbox authbox signupbox hidden" id="signupPanel">
-  <div class="loginbrand"><div class="logo">W</div><h1>Create your account</h1><p>Start your WIZO POS business workspace</p></div>
-  <form id="signupForm" onsubmit="submitSignup(event)">
-   <div class="field"><label for="regBusiness">Business name</label><input id="regBusiness" name="business" placeholder="Your business name" required></div>
-   <div class="field"><label for="regName">Full name</label><input id="regName" name="fullName" placeholder="Your full name" required></div>
-   <div class="field"><label for="regEmail">Email</label><input id="regEmail" name="email" type="email" placeholder="you@example.com" autocomplete="email" required></div>
-   <div class="field"><label for="regPhone">Phone</label><input id="regPhone" name="phone" type="tel" placeholder="Phone number" autocomplete="tel"></div>
-   <div class="formgrid authgrid">
-    <div class="field"><label for="regLanguage">Language</label><select id="regLanguage" name="language"><option>English</option><option>Afaan Oromoo</option><option>العربية</option></select></div>
-    <div class="field"><label for="regCurrency">Currency</label><select id="regCurrency" name="currency"><option value="ETB">ETB — Ethiopian Birr</option><option value="SAR">SAR — Saudi Riyal</option><option value="USD">USD — US Dollar</option><option value="EUR">EUR — Euro</option><option value="AED">AED — UAE Dirham</option></select></div>
+ <section id="registerPanel" class="registerbox hidden" aria-label="Create business account">
+  <div class="registerhead"><div class="loginbrand" style="margin:0;text-align:left"><div style="display:flex;align-items:center;gap:10px"><div class="logo">W</div><div><h1>WIZO POS</h1><p>Point of Sale &amp; Business Management</p></div></div></div><button class="light" type="button" onclick="showLogin()">Back to Sign In</button></div>
+  <hr><h2 style="margin:8px 0 4px">Create your business account</h2><p class="sub" style="margin-bottom:18px">Enter your business and owner information to get started.</p>
+  <form id="registerForm" onsubmit="submitRegistration(event)">
+   <div class="formgrid">
+    <div class="field"><label>Business name *</label><input name="businessName" required maxlength="120" placeholder="Your business name"></div>
+    <div class="field"><label>Owner full name *</label><input name="ownerName" required maxlength="120" placeholder="Full name"></div>
+    <div class="field"><label>Email *</label><input name="email" type="email" required autocomplete="email" placeholder="you@example.com"></div>
+    <div class="field"><label>Phone</label><input name="phone" type="tel" autocomplete="tel" placeholder="Phone number"></div>
+    <div class="field"><label>Password *</label><input name="password" type="password" required minlength="8" autocomplete="new-password" placeholder="At least 8 characters"></div>
+    <div class="field"><label>Language</label><select name="language"><option>English</option><option>Afaan Oromo</option><option>العربية</option></select></div>
+    <div class="field"><label>Currency</label><select name="currency"><option value="ETB">ETB — Ethiopian Birr</option><option value="SAR">SAR — Saudi Riyal</option><option value="USD">USD — US Dollar</option><option value="EUR">EUR — Euro</option><option value="AED">AED — UAE Dirham</option></select></div>
+    <div class="field"><label>Business logo (optional)</label><input name="logo" type="file" accept="image/*"><small class="muted">You can add or change your logo later.</small></div>
    </div>
-   <div class="field"><label for="regLogo">Business logo (optional)</label><input id="regLogo" name="logo" type="file" accept="image/*" onchange="previewBusinessLogo(event)"><img id="logoPreview" class="logo-preview hidden" alt="Business logo preview"></div>
-   <div class="formgrid authgrid">
-    <div class="field"><label for="regPassword">Password</label><input id="regPassword" name="password" type="password" minlength="8" placeholder="At least 8 characters" autocomplete="new-password" required></div>
-    <div class="field"><label for="regConfirm">Confirm password</label><input id="regConfirm" name="confirm" type="password" minlength="8" placeholder="Repeat password" autocomplete="new-password" required></div>
-   </div>
-   <button class="gold" type="submit">Create Account</button>
+   <p class="small muted">A 15-day trial is planned. Account creation will complete after Supabase Auth and business saving are connected.</p>
+   <div class="row" style="justify-content:flex-end;flex-wrap:wrap"><button class="light" type="button" onclick="showLogin()">Cancel</button><button class="gold" type="submit">Create Account</button></div>
   </form>
-  <div class="authlinks"><span class="small muted">Already have an account?</span><button class="linkbtn" type="button" onclick="showSignin()">Sign In</button></div>
- </div>
+ </section>
 </div>
 <div id="app" class="app hidden">
  <aside class="side">
@@ -60,74 +56,30 @@
    <button data-page="staff">♙ &nbsp; Employees &amp; Roles</button>
    <button data-page="admin">⚙ &nbsp; Super Admin</button>
    <button data-page="settings">☷ &nbsp; Settings</button>
-  </div><div class="sidefoot">WIZO POS</div>
+  </div><div class="sidefoot">WIZO POS · Prototype</div>
  </aside>
  <main class="main">
-  <header class="top"><div class="row"><button class="light mobilemenu" onclick="toast('Use the navigation panel on a larger screen.')">☰</button><b id="topTitle">Dashboard</b></div><div class="right"><span class="pill">● WIZO POS</span><span class="pill" id="rolePill">Super Admin</span><button class="light" onclick="logout()">Sign out</button></div></header>
+  <header class="top"><div class="row"><button class="light mobilemenu" onclick="toast('Use the navigation panel on a larger screen.')">☰</button><b id="topTitle">Dashboard</b></div><div class="right"><span class="pill">● Demo workspace</span><span class="pill" id="rolePill">Super Admin</span><button class="light" onclick="logout()">Sign out</button></div></header>
   <div class="content" id="view"></div>
  </main>
 </div>
 <div id="modalRoot"></div><div id="toastRoot"></div>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
-const SUPABASE_URL="https://rkdowbgbwsyhmlzfiynl.supabase.co";
-const SUPABASE_ANON_KEY="sb_publishable_RguZsGx7_dt-p3vvZ3BZbA_U563nFWp";
-const supabaseClient=window.supabase.createClient(SUPABASE_URL,SUPABASE_ANON_KEY);
 const $=id=>document.getElementById(id);
 const currencies={ETB:'ETB — Ethiopian Birr',SAR:'SAR — Saudi Riyal',USD:'USD — US Dollar',EUR:'EUR — Euro',AED:'AED — UAE Dirham'};
 let currency=localStorage.getItem('wizo_currency')||'ETB';
 const money=n=>currency+' '+Number(n||0).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});
-let db=JSON.parse(localStorage.getItem('wizo_demo_db')||'null')||{businesses:[],subscriptionRequests:[],products:[],sales:[],purchases:[],expenses:[],customers:[],suppliers:[],branches:[],staff:[],orders:[],menu:[]};
+let db=JSON.parse(localStorage.getItem('wizo_demo_db')||'null')||{businesses:[],subscriptionRequests:[],products:[{id:1,name:'Sukkara',sku:'WZ-0001',qty:100,cost:20,price:23.65,unit:'kg'},{id:2,name:'Bishinga',sku:'WZ-0002',qty:80,cost:28,price:30.8,unit:'kg'},{id:3,name:'Boqqollo',sku:'WZ-0003',qty:120,cost:25,price:27.5,unit:'kg'}],sales:[],purchases:[],expenses:[],customers:[],suppliers:[],branches:[{name:'Main Branch',location:'Main location'}],staff:[{name:'Owner',email:'owner@wizo.pos',role:'Owner'},{name:'Cashier Demo',email:'cashier@wizo.pos',role:'Cashier'}],orders:[],menu:[{id:1,name:'Tea',category:'Drinks',price:20,available:true},{id:2,name:'Pasta',category:'Main course',price:180,available:true},{id:3,name:'Rice',category:'Main course',price:150,available:true}]};
 if(!db.businesses)db.businesses=[];if(!db.subscriptionRequests)db.subscriptionRequests=[];if(!db.menu)db.menu=[];
 let page='dashboard',cart=[],lang='English';
 function save(){localStorage.setItem('wizo_demo_db',JSON.stringify(db))}
 function toast(s){$('toastRoot').innerHTML='<div class="toast">'+s+'</div>';setTimeout(()=>$('toastRoot').innerHTML='',3000)}
-async function login(){
- const email=$('loginEmail').value.trim(),password=$('loginPass').value;
- if(!email||!password)return toast('Please enter your email and password.');
- const btn=$('signinPanel').querySelector('button[type=submit]');btn.disabled=true;btn.textContent='Signing in…';
- try{
-  const {data,error}=await supabaseClient.auth.signInWithPassword({email,password});
-  if(error)throw error;
-  await ensureBusinessWorkspace(data.user);
-  $('login').classList.add('hidden');$('app').classList.remove('hidden');
-  $('rolePill').textContent='Business Owner';page='dashboard';render();
- }catch(err){toast(err.message||'Sign in failed.');}
- finally{btn.disabled=false;btn.textContent='Sign In';}
-}
-function showSignup(){$('signinPanel').classList.add('hidden');$('signupPanel').classList.remove('hidden');window.scrollTo(0,0)}
-function showSignin(){$('signupPanel').classList.add('hidden');$('signinPanel').classList.remove('hidden');window.scrollTo(0,0)}
-function previewBusinessLogo(e){const f=e.target.files&&e.target.files[0];if(!f)return;const img=$('logoPreview');img.src=URL.createObjectURL(f);img.classList.remove('hidden')}
-async function submitSignup(e){
- e.preventDefault();
- const p=$('regPassword').value,c=$('regConfirm').value;
- if(p!==c)return toast('Passwords do not match.');
- if(p.length<8)return toast('Password must be at least 8 characters.');
- const btn=$('signupForm').querySelector('button[type=submit]');btn.disabled=true;btn.textContent='Creating account…';
- const businessName=$('regBusiness').value.trim(),fullName=$('regName').value.trim(),email=$('regEmail').value.trim(),phone=$('regPhone').value.trim(),language=$('regLanguage').value,currencyChoice=$('regCurrency').value;
- try{
-  const {data,error}=await supabaseClient.auth.signUp({email,password:p,options:{data:{business_name:businessName,full_name:fullName,phone,language,currency:currencyChoice}}});
-  if(error)throw error;
-  if(data.session&&data.user){await ensureBusinessWorkspace(data.user);$('login').classList.add('hidden');$('app').classList.remove('hidden');$('rolePill').textContent='Business Owner';currency=currencyChoice;localStorage.setItem('wizo_currency',currency);render();toast('Account created successfully.');}
-  else{toast('Account created. Check your email, confirm it, then sign in.');showSignin();$('loginEmail').value=email;}
- }catch(err){toast(err.message||'Could not create account. Check Supabase settings.');}
- finally{btn.disabled=false;btn.textContent='Create Account';}
-}
-async function ensureBusinessWorkspace(user){
- const {data:members,error:memberError}=await supabaseClient.from('business_members').select('business_id,role').eq('user_id',user.id).limit(1);
- if(memberError)throw new Error('Sign-in succeeded, but business membership could not be checked: '+memberError.message);
- if(members&&members.length)return;
- const meta=user.user_metadata||{};
- const businessName=(meta.business_name||'').trim();
- if(!businessName)throw new Error('Your account has no business name. Please contact the WIZO POS administrator.');
- const {data:business,error:businessError}=await supabaseClient.from('businesses').insert({name:businessName,business_type:'Retail'}).select('id').single();
- if(businessError)throw new Error('Account exists, but business could not be saved: '+businessError.message);
- const {error:linkError}=await supabaseClient.from('business_members').insert({business_id:business.id,user_id:user.id,role:'owner'});
- if(linkError)throw new Error('Business was created, but owner membership could not be saved: '+linkError.message);
- if(meta.currency){currency=meta.currency;localStorage.setItem('wizo_currency',currency);}
-}
-async function forgotPassword(){const email=$('loginEmail').value.trim();if(!email)return toast('Enter your email first.');try{const {error}=await supabaseClient.auth.resetPasswordForEmail(email,{redirectTo:location.origin+location.pathname});if(error)throw error;toast('Password recovery email sent.');}catch(err){toast(err.message||'Could not send recovery email.');}}
-async function logout(){await supabaseClient.auth.signOut();$('app').classList.add('hidden');$('login').classList.remove('hidden');showSignin()}
+function showRegister(){$('loginPanel').classList.add('hidden');$('registerPanel').classList.remove('hidden')}
+function showLogin(){$('registerPanel').classList.add('hidden');$('loginPanel').classList.remove('hidden')}
+function submitRegistration(e){e.preventDefault();const f=new FormData(e.target);if((f.get('password')||'').length<8){toast('Password must be at least 8 characters');return}toast('Registration form is ready, but Supabase Auth and business saving must be connected before accounts can be created.')}
+function forgotPassword(){const email=$('loginEmail').value.trim();if(!email){toast('Enter your email address first');$('loginEmail').focus();return}toast('Password reset needs the Supabase password-reset connection.')}
+function login(){if(!$('loginEmail').value.trim()||!$('loginPass').value){toast('Enter your email and password');return}toast('Sign in is not connected to Supabase yet.');}
+function logout(){$('app').classList.add('hidden');$('login').classList.remove('hidden')}
 $('nav').addEventListener('click',e=>{let b=e.target.closest('button[data-page]');if(!b)return;page=b.dataset.page;document.querySelectorAll('.nav button').forEach(x=>x.classList.toggle('active',x===b));render()});
 function head(title,desc,button=''){return `<div class="pagehead"><div><h1>${title}</h1><div class="sub">${desc}</div></div>${button}</div>`}
 function stat(label,val,note=''){return `<div class="card"><div class="statlabel">${label}</div><div class="statval">${val}</div><div class="statnote">${note}</div></div>`}
