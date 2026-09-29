@@ -19,7 +19,7 @@
    <div class="field"><label for="loginPass">Password</label><input id="loginPass" type="password" placeholder="Enter password" autocomplete="current-password" required></div>
    <button class="gold" type="submit">Sign In</button>
   </form>
-  <div class="authlinks"><button class="linkbtn" type="button" onclick="toast('Connect Supabase Auth to enable password recovery.')">Forgot password?</button><button class="linkbtn" type="button" onclick="showSignup()">Create account</button></div>
+  <div class="authlinks"><button class="linkbtn" type="button" onclick="forgotPassword()">Forgot password?</button><button class="linkbtn" type="button" onclick="showSignup()">Create account</button></div>
  </div>
  <div class="loginbox authbox signupbox hidden" id="signupPanel">
   <div class="loginbrand"><div class="logo">W</div><h1>Create your account</h1><p>Start your WIZO POS business workspace</p></div>
@@ -68,7 +68,11 @@
  </main>
 </div>
 <div id="modalRoot"></div><div id="toastRoot"></div>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
+const SUPABASE_URL="https://rkdowbgbwsyhmlzfiynl.supabase.co";
+const SUPABASE_ANON_KEY="sb_publishable_RguZsGx7_dt-p3vvZ3BZbA_U563nFWp";
+const supabaseClient=window.supabase.createClient(SUPABASE_URL,SUPABASE_ANON_KEY);
 const $=id=>document.getElementById(id);
 const currencies={ETB:'ETB — Ethiopian Birr',SAR:'SAR — Saudi Riyal',USD:'USD — US Dollar',EUR:'EUR — Euro',AED:'AED — UAE Dirham'};
 let currency=localStorage.getItem('wizo_currency')||'ETB';
@@ -78,12 +82,52 @@ if(!db.businesses)db.businesses=[];if(!db.subscriptionRequests)db.subscriptionRe
 let page='dashboard',cart=[],lang='English';
 function save(){localStorage.setItem('wizo_demo_db',JSON.stringify(db))}
 function toast(s){$('toastRoot').innerHTML='<div class="toast">'+s+'</div>';setTimeout(()=>$('toastRoot').innerHTML='',3000)}
-function login(){toast('Sign-in is not connected yet. Configure Supabase Auth before using business accounts.') }
+async function login(){
+ const email=$('loginEmail').value.trim(),password=$('loginPass').value;
+ if(!email||!password)return toast('Please enter your email and password.');
+ const btn=$('signinPanel').querySelector('button[type=submit]');btn.disabled=true;btn.textContent='Signing in…';
+ try{
+  const {data,error}=await supabaseClient.auth.signInWithPassword({email,password});
+  if(error)throw error;
+  await ensureBusinessWorkspace(data.user);
+  $('login').classList.add('hidden');$('app').classList.remove('hidden');
+  $('rolePill').textContent='Business Owner';page='dashboard';render();
+ }catch(err){toast(err.message||'Sign in failed.');}
+ finally{btn.disabled=false;btn.textContent='Sign In';}
+}
 function showSignup(){$('signinPanel').classList.add('hidden');$('signupPanel').classList.remove('hidden');window.scrollTo(0,0)}
 function showSignin(){$('signupPanel').classList.add('hidden');$('signinPanel').classList.remove('hidden');window.scrollTo(0,0)}
 function previewBusinessLogo(e){const f=e.target.files&&e.target.files[0];if(!f)return;const img=$('logoPreview');img.src=URL.createObjectURL(f);img.classList.remove('hidden')}
-function submitSignup(e){e.preventDefault();const p=$('regPassword').value,c=$('regConfirm').value;if(p!==c){toast('Passwords do not match.');return}if(p.length<8){toast('Password must be at least 8 characters.');return}toast('Registration form is ready, but Supabase Auth and business saving must be connected before accounts can be created.')}
-function logout(){$('app').classList.add('hidden');$('login').classList.remove('hidden')}
+async function submitSignup(e){
+ e.preventDefault();
+ const p=$('regPassword').value,c=$('regConfirm').value;
+ if(p!==c)return toast('Passwords do not match.');
+ if(p.length<8)return toast('Password must be at least 8 characters.');
+ const btn=$('signupForm').querySelector('button[type=submit]');btn.disabled=true;btn.textContent='Creating account…';
+ const businessName=$('regBusiness').value.trim(),fullName=$('regName').value.trim(),email=$('regEmail').value.trim(),phone=$('regPhone').value.trim(),language=$('regLanguage').value,currencyChoice=$('regCurrency').value;
+ try{
+  const {data,error}=await supabaseClient.auth.signUp({email,password:p,options:{data:{business_name:businessName,full_name:fullName,phone,language,currency:currencyChoice}}});
+  if(error)throw error;
+  if(data.session&&data.user){await ensureBusinessWorkspace(data.user);$('login').classList.add('hidden');$('app').classList.remove('hidden');$('rolePill').textContent='Business Owner';currency=currencyChoice;localStorage.setItem('wizo_currency',currency);render();toast('Account created successfully.');}
+  else{toast('Account created. Check your email, confirm it, then sign in.');showSignin();$('loginEmail').value=email;}
+ }catch(err){toast(err.message||'Could not create account. Check Supabase settings.');}
+ finally{btn.disabled=false;btn.textContent='Create Account';}
+}
+async function ensureBusinessWorkspace(user){
+ const {data:members,error:memberError}=await supabaseClient.from('business_members').select('business_id,role').eq('user_id',user.id).limit(1);
+ if(memberError)throw new Error('Sign-in succeeded, but business membership could not be checked: '+memberError.message);
+ if(members&&members.length)return;
+ const meta=user.user_metadata||{};
+ const businessName=(meta.business_name||'').trim();
+ if(!businessName)throw new Error('Your account has no business name. Please contact the WIZO POS administrator.');
+ const {data:business,error:businessError}=await supabaseClient.from('businesses').insert({name:businessName,business_type:'Retail'}).select('id').single();
+ if(businessError)throw new Error('Account exists, but business could not be saved: '+businessError.message);
+ const {error:linkError}=await supabaseClient.from('business_members').insert({business_id:business.id,user_id:user.id,role:'owner'});
+ if(linkError)throw new Error('Business was created, but owner membership could not be saved: '+linkError.message);
+ if(meta.currency){currency=meta.currency;localStorage.setItem('wizo_currency',currency);}
+}
+async function forgotPassword(){const email=$('loginEmail').value.trim();if(!email)return toast('Enter your email first.');try{const {error}=await supabaseClient.auth.resetPasswordForEmail(email,{redirectTo:location.origin+location.pathname});if(error)throw error;toast('Password recovery email sent.');}catch(err){toast(err.message||'Could not send recovery email.');}}
+async function logout(){await supabaseClient.auth.signOut();$('app').classList.add('hidden');$('login').classList.remove('hidden');showSignin()}
 $('nav').addEventListener('click',e=>{let b=e.target.closest('button[data-page]');if(!b)return;page=b.dataset.page;document.querySelectorAll('.nav button').forEach(x=>x.classList.toggle('active',x===b));render()});
 function head(title,desc,button=''){return `<div class="pagehead"><div><h1>${title}</h1><div class="sub">${desc}</div></div>${button}</div>`}
 function stat(label,val,note=''){return `<div class="card"><div class="statlabel">${label}</div><div class="statval">${val}</div><div class="statnote">${note}</div></div>`}
