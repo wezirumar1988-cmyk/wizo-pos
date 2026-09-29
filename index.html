@@ -14,11 +14,28 @@
 <div id="login" class="login">
  <div class="loginbox">
   <div class="loginbrand"><div class="logo">W</div><h1>WIZO POS</h1><p>Point of Sale &amp; Business Management</p></div>
-  <div class="field"><label>Email</label><input id="loginEmail" type="email" placeholder="owner@example.com" value=""></div>
-  <div class="field"><label>Password</label><input id="loginPass" type="password" placeholder="Enter password" value=""></div>
-  <button class="gold" onclick="login()">Sign In</button>
-  <div class="row" style="margin-top:10px"><button class="linkbtn" onclick="resetPassword()">Forgot password?</button><button class="linkbtn" onclick="createAccount()">Create account</button></div>
-  <p id="authMessage" class="small muted" style="text-align:center">Sign in with your WIZO POS account.</p>
+  <div class="field"><label>Email</label><input id="loginEmail" type="email" placeholder="owner@example.com" value="demo@wizo.pos"></div>
+  <div class="field"><label>Password</label><input id="loginPass" type="password" placeholder="Enter password" value="demo1234"></div>
+  <div id="loginForm">
+   <button class="gold" onclick="login()">Sign In</button>
+   <div class="row" style="margin-top:10px"><button class="linkbtn" onclick="forgotPassword()">Forgot password?</button><button class="linkbtn" onclick="showSignup()">Create account</button></div>
+   <p class="small muted" style="text-align:center">Sign in with your WIZO POS account.</p>
+  </div>
+  <div id="signupForm" class="hidden">
+   <h2 style="text-align:center;font-size:19px">Create your account</h2>
+   <p class="small muted" style="text-align:center">Start your WIZO POS account</p>
+   <div class="field"><label>Business name</label><input id="signupBusiness" type="text" placeholder="Your business name" autocomplete="organization" required></div>
+   <div class="field"><label>Your full name</label><input id="signupName" type="text" placeholder="Full name" autocomplete="name" required></div>
+   <div class="field"><label>Email</label><input id="signupEmail" type="email" placeholder="you@example.com" autocomplete="email" required></div>
+   <div class="field"><label>Phone</label><input id="signupPhone" type="tel" placeholder="Phone number" autocomplete="tel" required></div>
+   <div class="field"><label>Language</label><select id="signupLanguage"><option value="English">English</option><option value="Afaan Oromoo">Afaan Oromoo</option><option value="العربية">العربية</option></select></div>
+   <div class="field"><label>Currency</label><select id="signupCurrency"><option value="ETB">ETB — Ethiopian Birr</option><option value="SAR">SAR — Saudi Riyal</option><option value="USD">USD — US Dollar</option><option value="EUR">EUR — Euro</option><option value="AED">AED — UAE Dirham</option></select></div>
+   <div class="field"><label>Business logo <span class="muted">(optional)</span></label><input id="signupLogo" type="file" accept="image/png,image/jpeg,image/webp" onchange="previewSignupLogo(event)"><div id="signupLogoPreview" class="small muted">No logo selected</div></div>
+   <div class="field"><label>Password (at least 6 characters)</label><input id="signupPass" type="password" placeholder="Create a password" autocomplete="new-password" required></div>
+   <button id="signupSubmit" class="gold" onclick="createAccount()">Create account</button>
+   <div class="row" style="margin-top:10px;justify-content:center"><button class="linkbtn" onclick="showLogin()">Back to Sign In</button></div>
+   <p id="signupMessage" class="small muted" style="text-align:center" aria-live="polite"></p>
+  </div>
  </div>
 </div>
 <div id="app" class="app hidden">
@@ -50,8 +67,8 @@
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
 const SUPABASE_URL='https://rkdowbgbwsyhmlzfiynl.supabase.co';
-const SUPABASE_PUBLISHABLE_KEY='sb_publishable_RguZsGx7_dt-p3vvZ3BZbA_U563nFWp';
-const supabaseClient=window.supabase?.createClient(SUPABASE_URL,SUPABASE_PUBLISHABLE_KEY);
+const SUPABASE_ANON_KEY='sb_publishable_RguZsGx7_dt-p3vvZ3BZbA_U563nFWp';
+const supabaseClient=window.supabase?.createClient(SUPABASE_URL,SUPABASE_ANON_KEY);
 const $=id=>document.getElementById(id);
 const currencies={ETB:'ETB — Ethiopian Birr',SAR:'SAR — Saudi Riyal',USD:'USD — US Dollar',EUR:'EUR — Euro',AED:'AED — UAE Dirham'};
 let currency=localStorage.getItem('wizo_currency')||'ETB';
@@ -61,34 +78,47 @@ if(!db.businesses)db.businesses=[];if(!db.subscriptionRequests)db.subscriptionRe
 let page='dashboard',cart=[],lang='English';
 function save(){localStorage.setItem('wizo_demo_db',JSON.stringify(db))}
 function toast(s){$('toastRoot').innerHTML='<div class="toast">'+s+'</div>';setTimeout(()=>$('toastRoot').innerHTML='',3000)}
-async function login(){
- const email=$('loginEmail').value.trim(),password=$('loginPass').value;
- if(!supabaseClient)return authMessage('Authentication service could not load. Check your internet connection.');
- if(!email||!password)return authMessage('Enter your email and password.');
- authMessage('Signing in…');
- const {data,error}=await supabaseClient.auth.signInWithPassword({email,password});
- if(error)return authMessage(error.message);
- window.wizoSession=data.session;
- $('login').classList.add('hidden');$('app').classList.remove('hidden');render();
+function showSignup(){ $('loginForm').classList.add('hidden');$('signupForm').classList.remove('hidden');$('signupMessage').textContent=''; }
+function showLogin(){ $('signupForm').classList.add('hidden');$('loginForm').classList.remove('hidden'); }
+function previewSignupLogo(event){
+ const file=event.target.files&&event.target.files[0],preview=$('signupLogoPreview');
+ if(!file){preview.textContent='No logo selected';return}
+ if(!/^image\/(png|jpeg|webp)$/.test(file.type)){event.target.value='';preview.textContent='Please choose a PNG, JPG, or WEBP image.';return}
+ if(file.size>2*1024*1024){event.target.value='';preview.textContent='Logo must be 2 MB or smaller.';return}
+ const url=URL.createObjectURL(file);preview.innerHTML='';const img=document.createElement('img');img.src=url;img.alt='Business logo preview';img.style='max-width:90px;max-height:90px;object-fit:contain;border:1px solid #ddd;border-radius:8px;padding:5px';preview.appendChild(img);
 }
 async function createAccount(){
+ const business=$('signupBusiness').value.trim(),name=$('signupName').value.trim(),email=$('signupEmail').value.trim(),phone=$('signupPhone').value.trim(),language=$('signupLanguage').value,currencyChoice=$('signupCurrency').value,password=$('signupPass').value;
+ const msg=$('signupMessage'),btn=$('signupSubmit');
+ if(!business||!name||!email||!phone||!password){msg.textContent='Please fill in all required fields.';return}
+ if(password.length<6){msg.textContent='Password must be at least 6 characters.';return}
+ if(!supabaseClient){msg.textContent='Authentication could not load. Check your internet connection and refresh.';return}
+ btn.disabled=true;btn.textContent='Creating account…';msg.textContent='';
+ try{
+  const {data,error}=await supabaseClient.auth.signUp({email,password,options:{emailRedirectTo:location.origin+location.pathname,data:{full_name:name,business_name:business,phone,language,currency:currencyChoice,logo_file_name:$('signupLogo').files[0]?.name||null}}});
+  if(error)throw error;
+  msg.textContent=data.session?'Account created. You can now sign in.':'Account created. Check your email and open the confirmation link before signing in.';
+  if(data.session){$('loginEmail').value=email;showLogin()}
+ }catch(e){
+  let m=e.message||'Could not create account.';
+  if(/rate limit|email rate limit/i.test(m))m='Email sending limit reached. Please wait before trying again.';
+  else if(/already registered|already exists/i.test(m))m='This email already has an account. Try signing in or reset your password.';
+  msg.textContent=m;
+ }finally{btn.disabled=false;btn.textContent='Create account'}
+}
+async function forgotPassword(){
+ const email=$('loginEmail').value.trim();if(!email){toast('Enter your email first.');return}
+ if(!supabaseClient)return toast('Authentication could not load.');
+ try{const {error}=await supabaseClient.auth.resetPasswordForEmail(email,{redirectTo:location.origin+location.pathname});if(error)throw error;toast('Password recovery email sent. Check your inbox.')}catch(e){toast(e.message||'Could not send recovery email.')}
+}
+async function login(){
  const email=$('loginEmail').value.trim(),password=$('loginPass').value;
- if(!supabaseClient)return authMessage('Authentication service could not load.');
- if(!email||password.length<6)return authMessage('Enter an email and a password of at least 6 characters.');
- authMessage('Creating account…');
- const {error}=await supabaseClient.auth.signUp({email,password});
- authMessage(error?error.message:'Account request sent. Check your email to confirm, if confirmation is enabled.');
+ if(!email||!password)return toast('Enter your email and password.');
+ if(!supabaseClient)return toast('Authentication could not load. Check your internet connection.');
+ try{const {error}=await supabaseClient.auth.signInWithPassword({email,password});if(error)throw error;$('login').classList.add('hidden');$('app').classList.remove('hidden');render()}
+ catch(e){toast(e.message||'Sign in failed.')}
 }
-async function resetPassword(){
- const email=$('loginEmail').value.trim();
- if(!supabaseClient)return authMessage('Authentication service could not load.');
- if(!email)return authMessage('Enter your email first.');
- const {error}=await supabaseClient.auth.resetPasswordForEmail(email,{redirectTo:location.origin+location.pathname});
- authMessage(error?error.message:'If the account exists, a password reset email has been sent.');
-}
-function authMessage(message){const el=$('authMessage');if(el)el.textContent=message;}
-async function logout(){if(supabaseClient)await supabaseClient.auth.signOut();window.wizoSession=null;$('app').classList.add('hidden');$('login').classList.remove('hidden')}
-if(supabaseClient){supabaseClient.auth.getSession().then(({data})=>{if(data.session){window.wizoSession=data.session;$('login').classList.add('hidden');$('app').classList.remove('hidden');render()}})}
+async function logout(){if(supabaseClient)await supabaseClient.auth.signOut();$('app').classList.add('hidden');$('login').classList.remove('hidden');showLogin()}
 $('nav').addEventListener('click',e=>{let b=e.target.closest('button[data-page]');if(!b)return;page=b.dataset.page;document.querySelectorAll('.nav button').forEach(x=>x.classList.toggle('active',x===b));render()});
 function head(title,desc,button=''){return `<div class="pagehead"><div><h1>${title}</h1><div class="sub">${desc}</div></div>${button}</div>`}
 function stat(label,val,note=''){return `<div class="card"><div class="statlabel">${label}</div><div class="statval">${val}</div><div class="statnote">${note}</div></div>`}
