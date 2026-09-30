@@ -78,6 +78,15 @@ const SUPABASE_URL="https://rkdowbgbwsyhmlzfiynl.supabase.co";
 const SUPABASE_ANON_KEY="sb_publishable_RguZsGx7_dt-p3vvZ3BZbA_U563nFWp";
 const supabaseClient=window.supabase.createClient(SUPABASE_URL,SUPABASE_ANON_KEY);
 const $=id=>document.getElementById(id);
+const SUPER_ADMIN_EMAIL='wezirumar1988@gmail.com';
+let isSuperAdmin=false;
+function applyRoleAccess(user){
+ isSuperAdmin=String(user?.email||'').trim().toLowerCase()===SUPER_ADMIN_EMAIL;
+ const adminButton=document.querySelector('.nav button[data-page="admin"]');
+ if(adminButton)adminButton.classList.toggle('hidden',!isSuperAdmin);
+ const role=$('rolePill');if(role)role.textContent=isSuperAdmin?'Super Admin':'Business Owner';
+ if(!isSuperAdmin&&page==='admin')page='dashboard';
+}
 const currencies={ETB:'ETB — Ethiopian Birr',SAR:'SAR — Saudi Riyal',USD:'USD — US Dollar',EUR:'EUR — Euro',AED:'AED — UAE Dirham'};
 let currency=localStorage.getItem('wizo_currency')||'ETB';
 let businessName=localStorage.getItem('wizo_business_name')||'WIZO POS Demo';
@@ -189,14 +198,14 @@ async function loadBusinessSettings(){
  if(data){businessName=data.business_name||'WIZO POS Demo';currency=data.currency||'ETB';localStorage.setItem('wizo_business_name',businessName);localStorage.setItem('wizo_currency',currency)}
 }
 async function showApp(){
- try{const {data:{user},error:authError}=await supabaseClient.auth.getUser();if(authError||!user)throw authError||new Error('Please sign in first');if(!await checkBusinessAccess(user))return;
+ try{const {data:{user},error:authError}=await supabaseClient.auth.getUser();if(authError||!user)throw authError||new Error('Please sign in first');applyRoleAccess(user);if(!await checkBusinessAccess(user))return;
  $('login').classList.add('hidden');$('app').classList.remove('hidden');
  await ensureBusinessAccount();await loadBusinessSettings();await loadBusinessData();render();}
  catch(err){console.error(err);toast('Could not load your account data: '+(err.message||'Check Supabase setup'));}
 }
-async function logout(){await supabaseClient.auth.signOut();activeUserId=null;$('app').classList.add('hidden');$('login').classList.remove('hidden')}
+async function logout(){await supabaseClient.auth.signOut();activeUserId=null;isSuperAdmin=false;applyRoleAccess(null);$('app').classList.add('hidden');$('login').classList.remove('hidden')}
 supabaseClient.auth.getSession().then(({data})=>{if(data.session)showApp()});
-$('nav').addEventListener('click',e=>{let b=e.target.closest('button[data-page]');if(!b)return;page=b.dataset.page;document.querySelectorAll('.nav button').forEach(x=>x.classList.toggle('active',x===b));render()});
+$('nav').addEventListener('click',e=>{let b=e.target.closest('button[data-page]');if(!b)return;if(b.dataset.page==='admin'&&!isSuperAdmin){page='dashboard';toast('Access denied');return}page=b.dataset.page;document.querySelectorAll('.nav button').forEach(x=>x.classList.toggle('active',x===b));render()});
 function head(title,desc,button=''){return `<div class="pagehead"><div><h1>${title}</h1><div class="sub">${desc}</div></div>${button}</div>`}
 function stat(label,val,note=''){return `<div class="card"><div class="statlabel">${label}</div><div class="statval">${val}</div><div class="statnote">${note}</div></div>`}
 function table(headers,rows){return `<div class="tablewrap"><table><thead><tr>${headers.map(x=>`<th>${x}</th>`).join('')}</tr></thead><tbody>${rows.length?rows.join(''):`<tr><td colspan="${headers.length}" class="empty">No records yet</td></tr>`}</tbody></table></div>`}
@@ -218,6 +227,7 @@ function requestSubscription(id){let b=db.businesses.find(x=>x.id===id);if(!b)re
 function approveSubscription(id){let r=db.subscriptionRequests.find(x=>x.id===id);if(!r)return;let b=db.businesses.find(x=>x.id===r.businessId);if(b){b.subscription='Active';b.status='Active'}r.status='Approved';r.approvedAt=new Date().toISOString();save();render()}
 function rejectSubscription(id){let r=db.subscriptionRequests.find(x=>x.id===id);if(!r)return;r.status='Rejected';save();render()}
 function render(){
+if(page==='admin'&&!isSuperAdmin){page='dashboard';document.querySelectorAll('.nav button').forEach(x=>x.classList.toggle('active',x.dataset.page==='dashboard'));}
 let sales=db.sales,rev=sales.reduce((a,x)=>a+x.total,0),cost=sales.reduce((a,x)=>a+x.cost,0),exp=db.expenses.reduce((a,x)=>a+x.amount,0),stock=db.products.reduce((a,x)=>a+x.qty,0),stockval=db.products.reduce((a,x)=>a+x.qty*x.cost,0);
 let html='';
 if(page==='dashboard')html=head('Dashboard','Business overview and daily activity')+`<div class="notice"><b>Account data:</b> records are saved to the signed-in account in Supabase. Verify database policies before using real customer or business data.</div><div class="grid stats">${stat('Total Sales',money(rev),'All recorded sales')}${stat('Purchase Cost',money(cost),'Cost of sold items')}${stat('Expenses',money(exp),'Recorded expenses')}${stat('Net Profit',money(rev-cost-exp),'Sales − cost − expenses')}${stat('Stock Products',db.products.length,'Products in catalog')}${stat('Stock Quantity',stock,'Total units')}${stat('Stock Value',money(stockval),'At unit cost')}${stat('Invoices',sales.length,'Completed sales')}</div><div class="grid two"><div class="card"><h3>Recent sales</h3>${table(['Invoice','Date','Payment','Total','Actions'],sales.slice(-5).reverse().map(x=>`<tr><td>${x.invoice}</td><td>${x.date}</td><td>${x.payment}</td><td>${money(x.total)}</td><td><div class="actions"><button class="light" onclick="editSale('${x.invoice}')">Edit</button><button class="danger" onclick="deleteSale('${x.invoice}')">Delete</button></div></td></tr>`))}</div><div class="card"><h3>Stock alerts</h3>${table(['Product','Quantity','Status','Actions'],db.products.filter(p=>p.qty<10).map(p=>`<tr><td>${p.name}</td><td>${p.qty}</td><td><span class="tag bad">Low stock</span></td><td><div class="actions"><button class="light" onclick="editProduct(${p.id})">Edit</button><button class="danger" onclick="deleteProduct(${p.id})">Delete</button></div></td></tr>`))}</div></div>`;
