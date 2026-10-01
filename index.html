@@ -27,6 +27,14 @@
   <div class="field"><label>Email</label><a href="mailto:Wezirumar1988@gmail.com?subject=WIZO%20POS%20subscription%20renewal&body=Hello%20WIZO%20POS%20Support%2C%20my%20subscription%20has%20expired.%20Please%20help%20me%20renew%20it." style="display:block;text-align:center;background:#f0f1f3;color:#252525;text-decoration:none;padding:12px;border-radius:9px;font-weight:600">Email WIZO POS Support</a></div>
   <button class="linkbtn" type="button" onclick="hideSupportPanel();$('loginPanel').classList.remove('hidden')">Back to Sign In</button>
  </section>
+ <section id="deactivatedPanel" class="loginbox hidden" aria-live="polite">
+  <div class="loginbrand"><div class="logo">W</div><h1>WIZO POS</h1><p>Point of Sale &amp; Business Management</p></div>
+  <div class="notice"><b>Your account has been deactivated.</b><br>Your access is currently disabled by the administrator. Please contact WIZO POS Support to request reactivation.</div>
+  <div class="field"><label>WhatsApp</label><a href="https://wa.me/966536690242?text=Hello%20WIZO%20POS%20Support%2C%20my%20account%20has%20been%20deactivated.%20Please%20help%20me%20reactivate%20it." target="_blank" rel="noopener" style="display:block;text-align:center;background:#16834a;color:#fff;text-decoration:none;padding:12px;border-radius:9px;font-weight:600">Contact on WhatsApp</a></div>
+  <div class="field"><label>Phone</label><a href="tel:+966536690242" style="display:block;text-align:center;background:#151515;color:#fff;text-decoration:none;padding:12px;border-radius:9px;font-weight:600">Call +966536690242</a></div>
+  <div class="field"><label>Email</label><a href="mailto:Wezirumar1988@gmail.com?subject=WIZO%20POS%20account%20reactivation&body=Hello%20WIZO%20POS%20Support%2C%20my%20account%20has%20been%20deactivated.%20Please%20help%20me%20reactivate%20it." style="display:block;text-align:center;background:#f0f1f3;color:#252525;text-decoration:none;padding:12px;border-radius:9px;font-weight:600">Email WIZO POS Support</a></div>
+  <button class="linkbtn" type="button" onclick="hideDeactivatedPanel();$('loginPanel').classList.remove('hidden')">Back to Sign In</button>
+ </section>
  <section id="registerPanel" class="registerbox hidden" aria-label="Create business account">
   <div class="registerhead"><div class="loginbrand" style="margin:0;text-align:left"><div style="display:flex;align-items:center;gap:10px"><div class="logo">W</div><div><h1>WIZO POS</h1><p>Point of Sale &amp; Business Management</p></div></div></div><button class="light" type="button" onclick="showLogin()">Back to Sign In</button></div>
   <hr><h2 style="margin:8px 0 4px">Create your business account</h2><p class="sub" style="margin-bottom:18px">Enter your business and owner information to get started.</p>
@@ -170,7 +178,9 @@ async function submitRegistration(e){
 }
 async function forgotPassword(){const email=$('loginEmail').value.trim();if(!email){toast('Enter your email address first');$('loginEmail').focus();return}
  try{const {error}=await supabaseClient.auth.resetPasswordForEmail(email,{redirectTo:'https://wezirumar1988-cmyk.github.io/wizo-pos/'});if(error)throw error;toast('Password reset email sent. Check your inbox and spam folder.')}catch(err){toast(err.message||'Could not send reset email')}}
-function showSupportPanel(){const p=$('supportPanel');if(p){$('loginPanel').classList.add('hidden');$('registerPanel').classList.add('hidden');p.classList.remove('hidden');}}
+function showSupportPanel(){const p=$('supportPanel');if(p){$('loginPanel').classList.add('hidden');$('registerPanel').classList.add('hidden');$('deactivatedPanel').classList.add('hidden');p.classList.remove('hidden');}}
+function showDeactivatedPanel(){const p=$('deactivatedPanel');if(p){$('loginPanel').classList.add('hidden');$('registerPanel').classList.add('hidden');$('supportPanel').classList.add('hidden');p.classList.remove('hidden');}}
+function hideDeactivatedPanel(){const p=$('deactivatedPanel');if(p)p.classList.add('hidden');}
 function hideSupportPanel(){const p=$('supportPanel');if(p)p.classList.add('hidden');}
 async function checkBusinessAccess(user){
  if(!user)return false;
@@ -184,8 +194,7 @@ async function checkBusinessAccess(user){
    await supabaseClient.auth.signOut();activeUserId=null;$('app').classList.add('hidden');$('login').classList.remove('hidden');showSupportPanel();return false;
   }
   if(data.status!=='Active'){
-   await supabaseClient.auth.signOut();activeUserId=null;$('app').classList.add('hidden');$('login').classList.remove('hidden');hideSupportPanel();$('loginPanel').classList.remove('hidden');
-   toast(lang==='Afaan Oromoo'?'Account kee adminiin cufameera. WIZO POS abbaa isaa qunnami.':lang==='العربية'?'تم تعطيل حسابك. يرجى التواصل مع مالك WIZO POS.':'Your account is deactivated. Contact the WIZO POS owner.');return false;
+   await supabaseClient.auth.signOut();activeUserId=null;$('app').classList.add('hidden');$('login').classList.remove('hidden');showDeactivatedPanel();return false;
   }
  }
  hideSupportPanel();return true;
