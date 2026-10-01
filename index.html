@@ -236,17 +236,22 @@ function addPerson(kind){openModal('Add '+kind,field('Name','name','Full name')+
 function addStaff(){
  if(!activeUserId)return toast('Please sign in again before adding an employee.');
  const modalRoot=$('modalRoot');
- modalRoot.innerHTML=`<div class="modalback" onclick="if(event.target===this)closeModal()"><div class="modal"><div class="modalhead"><h2>Add cashier</h2><button class="light" type="button" onclick="closeModal()">✕</button></div><form id="addCashierForm"><p class="small muted">Enter the cashier's name and email. Supabase will send an invitation email.</p>${field('Cashier full name','name','Full name')}${field('Cashier email','email','cashier@example.com','email')}<hr><div class="row"><button type="button" class="light" onclick="closeModal()">Cancel</button><button class="gold" id="addCashierSubmit" type="submit">Send invitation</button></div></form></div></div>`;
+ modalRoot.innerHTML=`<div class="modalback" onclick="if(event.target===this)closeModal()"><div class="modal"><div class="modalhead"><h2>Add cashier</h2><button class="light" type="button" onclick="closeModal()">✕</button></div><form id="addCashierForm"><p class="small muted">Enter the cashier's name, email, and a temporary password. Share the password securely with the cashier.</p>${field('Cashier full name','name','Full name')}${field('Cashier email','email','cashier@example.com','email')}${field('Cashier password','password','At least 8 characters','password')}${field('Confirm password','confirmPassword','Re-enter password','password')}<p class="small muted">The cashier can sign in with this email and password. Do not reuse your own password.</p><hr><div class="row"><button type="button" class="light" onclick="closeModal()">Cancel</button><button class="gold" id="addCashierSubmit" type="submit">Create employee</button></div></form></div></div>`;
  const form=$('addCashierForm');
  form.onsubmit=async e=>{
   e.preventDefault();
   const submit=$('addCashierSubmit');
-  const name=String(new FormData(form).get('name')||'').trim();
-  const email=String(new FormData(form).get('email')||'').trim().toLowerCase();
-  if(!name||!email){toast('Enter the cashier name and email.');return;}
+  const fd=new FormData(form);
+  const name=String(fd.get('name')||'').trim();
+  const email=String(fd.get('email')||'').trim().toLowerCase();
+  const password=String(fd.get('password')||'');
+  const confirmPassword=String(fd.get('confirmPassword')||'');
+  if(!name||!email||!password||!confirmPassword){toast('Complete all cashier fields.');return;}
   if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)){toast('Enter a valid email address.');return;}
+  if(password.length<8){toast('Password must be at least 8 characters.');return;}
+  if(password!==confirmPassword){toast('Passwords do not match.');return;}
   if(email===String((await supabaseClient.auth.getUser()).data?.user?.email||'').toLowerCase()){toast('Use a different email for the cashier.');return;}
-  submit.disabled=true;submit.textContent='Sending…';
+  submit.disabled=true;submit.textContent='Creating…';
   try{
    const {data:{user},error:userError}=await supabaseClient.auth.getUser();
    if(userError)throw userError;
@@ -257,17 +262,17 @@ function addStaff(){
    const {data:business,error:businessError}=await supabaseClient.from('businesses').select('id').eq('name',account.business_name).eq('is_active',true).maybeSingle();
    if(businessError)throw businessError;
    if(!business?.id)throw new Error('Your business is not linked to the cashier system yet.');
-   const {data:result,error:functionError}=await supabaseClient.functions.invoke('create-cashier',{body:{business_id:business.id,name,email}});
+   const {data:result,error:functionError}=await supabaseClient.functions.invoke('create-cashier',{body:{business_id:business.id,name,email,password}});
    if(functionError)throw functionError;
    if(result?.error)throw new Error(result.error);
-   if(!result?.success)throw new Error('The invitation was not confirmed by the server.');
+   if(!result?.success)throw new Error('Employee creation was not confirmed by the server.');
    db.staff=db.staff||[];
-   if(!db.staff.some(x=>String(x.email||'').toLowerCase()===email))db.staff.push({id:result.user_id||Date.now(),name,email,role:'Cashier',status:'Invited'});
-   save();closeModal();render();toast('Cashier invitation sent to '+email);
+   if(!db.staff.some(x=>String(x.email||'').toLowerCase()===email))db.staff.push({id:result.user_id||Date.now(),name,email,role:'Cashier',status:'Active'});
+   save();closeModal();render();toast('Cashier account created for '+email);
   }catch(err){
-   console.error('Cashier invitation failed:',err);
-   toast('Could not add cashier: '+(err.message||String(err)));
-   submit.disabled=false;submit.textContent='Send invitation';
+   console.error('Cashier creation failed:',err);
+   toast('Could not create cashier: '+(err.message||String(err)));
+   submit.disabled=false;submit.textContent='Create employee';
   }
  };
 }
