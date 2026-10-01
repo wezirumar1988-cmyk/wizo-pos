@@ -85,6 +85,7 @@ const money=n=>currency+' '+Number(n||0).toLocaleString('en-US',{minimumFraction
 const initialDb={businesses:[],subscriptionRequests:[],products:[{id:1,name:'Sukkara',sku:'WZ-0001',qty:100,cost:20,price:23.65,unit:'kg'},{id:2,name:'Bishinga',sku:'WZ-0002',qty:80,cost:28,price:30.8,unit:'kg'},{id:3,name:'Boqqollo',sku:'WZ-0003',qty:120,cost:25,price:27.5,unit:'kg'}],sales:[],purchases:[],expenses:[],customers:[],suppliers:[],branches:[{name:'Main Branch',location:'Main location'}],staff:[{name:'Owner',email:'owner@wizo.pos',role:'Owner'},{name:'Cashier Demo',email:'cashier@wizo.pos',role:'Cashier'}],orders:[],menu:[{id:1,name:'Tea',category:'Drinks',price:20,available:true},{id:2,name:'Pasta',category:'Main course',price:180,available:true},{id:3,name:'Rice',category:'Main course',price:150,available:true}]};
 let db=JSON.parse(localStorage.getItem('wizo_demo_db')||'null')||structuredClone(initialDb);
 let activeUserId=null;
+let isWizoAdmin=false;
 if(!db.businesses)db.businesses=[];if(!db.subscriptionRequests)db.subscriptionRequests=[];if(!db.menu)db.menu=[];
 let page='dashboard',cart=[],lang=localStorage.getItem('wizo_language')||'English',activeInvoiceNo=newInvoiceNo();
 function newInvoiceNo(){
@@ -200,13 +201,15 @@ async function loadBusinessSettings(){
 }
 async function showApp(){
  try{const {data:{user},error:authError}=await supabaseClient.auth.getUser();if(authError||!user)throw authError||new Error('Please sign in first');if(!await checkBusinessAccess(user))return;
+ isWizoAdmin=String(user.email||'').toLowerCase()==='wezirumar1988@gmail.com';
+ const adminNav=$('nav').querySelector('[data-page="admin"]');if(adminNav)adminNav.classList.toggle('hidden',!isWizoAdmin);
  $('login').classList.add('hidden');$('app').classList.remove('hidden');
  await ensureBusinessAccount();await loadBusinessSettings();await loadBusinessData();render();}
  catch(err){console.error(err);toast('Could not load your account data: '+(err.message||'Check Supabase setup'));}
 }
-async function logout(){await supabaseClient.auth.signOut();activeUserId=null;$('app').classList.add('hidden');$('login').classList.remove('hidden')}
+async function logout(){await supabaseClient.auth.signOut();activeUserId=null;isWizoAdmin=false;const adminNav=$('nav').querySelector('[data-page="admin"]');if(adminNav)adminNav.classList.add('hidden');$('app').classList.add('hidden');$('login').classList.remove('hidden')}
 supabaseClient.auth.getSession().then(({data})=>{if(data.session)showApp()});
-$('nav').addEventListener('click',e=>{let b=e.target.closest('button[data-page]');if(!b)return;page=b.dataset.page;document.querySelectorAll('.nav button').forEach(x=>x.classList.toggle('active',x===b));render()});
+$('nav').addEventListener('click',e=>{let b=e.target.closest('button[data-page]');if(!b)return;if(b.dataset.page==='admin'&&!isWizoAdmin){toast('Access denied');return}page=b.dataset.page;document.querySelectorAll('.nav button').forEach(x=>x.classList.toggle('active',x===b));render()});
 function head(title,desc,button=''){return `<div class="pagehead"><div><h1>${title}</h1><div class="sub">${desc}</div></div>${button}</div>`}
 function stat(label,val,note=''){return `<div class="card"><div class="statlabel">${label}</div><div class="statval">${val}</div><div class="statnote">${note}</div></div>`}
 function table(headers,rows){return `<div class="tablewrap"><table><thead><tr>${headers.map(x=>`<th>${x}</th>`).join('')}</tr></thead><tbody>${rows.length?rows.join(''):`<tr><td colspan="${headers.length}" class="empty">No records yet</td></tr>`}</tbody></table></div>`}
@@ -228,6 +231,7 @@ function requestSubscription(id){let b=db.businesses.find(x=>x.id===id);if(!b)re
 function approveSubscription(id){let r=db.subscriptionRequests.find(x=>x.id===id);if(!r)return;let b=db.businesses.find(x=>x.id===r.businessId);if(b){b.subscription='Active';b.status='Active'}r.status='Approved';r.approvedAt=new Date().toISOString();save();render()}
 function rejectSubscription(id){let r=db.subscriptionRequests.find(x=>x.id===id);if(!r)return;r.status='Rejected';save();render()}
 function render(){
+if(page==='admin'&&!isWizoAdmin){page='dashboard';toast('Only the WIZO administrator can open Super Admin.');}
 let sales=db.sales,rev=sales.reduce((a,x)=>a+x.total,0),cost=sales.reduce((a,x)=>a+x.cost,0),exp=db.expenses.reduce((a,x)=>a+x.amount,0),stock=db.products.reduce((a,x)=>a+x.qty,0),stockval=db.products.reduce((a,x)=>a+x.qty*x.cost,0);
 let html='';
 if(page==='dashboard')html=head('Dashboard','Business overview and daily activity')+`<div class="notice"><b>Account data:</b> records are saved to the signed-in account in Supabase. Verify database policies before using real customer or business data.</div><div class="grid stats">${stat('Total Sales',money(rev),'All recorded sales')}${stat('Purchase Cost',money(cost),'Cost of sold items')}${stat('Expenses',money(exp),'Recorded expenses')}${stat('Net Profit',money(rev-cost-exp),'Sales − cost − expenses')}${stat('Stock Products',db.products.length,'Products in catalog')}${stat('Stock Quantity',stock,'Total units')}${stat('Stock Value',money(stockval),'At unit cost')}${stat('Invoices',sales.length,'Completed sales')}</div><div class="grid two"><div class="card"><h3>Recent sales</h3>${table(['Invoice','Date','Payment','Total','Actions'],sales.slice(-5).reverse().map(x=>`<tr><td>${x.invoice}</td><td>${x.date}</td><td>${x.payment}</td><td>${money(x.total)}</td><td><div class="actions"><button class="light" onclick="printSaleByInvoice('${x.invoice}')">Print</button><button class="light" onclick="editSale('${x.invoice}')">Edit</button><button class="danger" onclick="deleteSale('${x.invoice}')">Delete</button></div></td></tr>`))}</div><div class="card"><h3>Stock alerts</h3>${table(['Product','Quantity','Status','Actions'],db.products.filter(p=>p.qty<10).map(p=>`<tr><td>${p.name}</td><td>${p.qty}</td><td><span class="tag bad">Low stock</span></td><td><div class="actions"><button class="light" onclick="editProduct(${p.id})">Edit</button><button class="danger" onclick="deleteProduct(${p.id})">Delete</button></div></td></tr>`))}</div></div>`;
@@ -247,6 +251,7 @@ if(page==='settings')html=head('Settings','Workspace preferences and data tools'
 $('view').innerHTML=html;$('topTitle').textContent=page.charAt(0).toUpperCase()+page.slice(1);if(page==='settings')loadOwnerProfile();if(page==='admin'){loadAdminUsers();loadAdminBusinesses();}
 }
 async function loadAdminBusinesses(){
+ if(!isWizoAdmin){toast('Access denied');return}
  const status=$('adminBusinessesStatus'),tableEl=$('adminBusinessesTable');if(!status||!tableEl)return;
  status.textContent='Loading business accounts…';tableEl.innerHTML='';
  try{
@@ -259,6 +264,7 @@ async function loadAdminBusinesses(){
  }catch(err){status.textContent='Could not load business accounts: '+(err.message||String(err));tableEl.innerHTML='';}
 }
 async function setBusinessStatus(id,statusValue){
+ if(!isWizoAdmin){toast('Access denied');return}
  if(!await appConfirm(`Set this business account to ${statusValue}?`))return;
  try{const {error}=await supabaseClient.from('wizo_business_accounts').update({status:statusValue}).eq('id',id);if(error)throw error;toast('Business access updated');await loadAdminBusinesses();}
  catch(err){toast('Update failed: '+(err.message||String(err)));}
@@ -270,6 +276,7 @@ function addSubscriptionMonths(startDate,months){
  end.setDate(Math.min(day,lastDay));return end;
 }
 async function setBusinessSubscription(id,statusValue){
+ if(!isWizoAdmin){toast('Access denied');return}
  const rowId=String(id);
  if(statusValue==='Expired'){if(!await appConfirm('Expire this subscription?'))return;try{const {error}=await supabaseClient.from('wizo_business_accounts').update({subscription_status:'Expired',status:'Deactivated'}).eq('id',rowId);if(error)throw error;toast('Subscription expired');await loadAdminBusinesses();}catch(err){toast('Update failed: '+(err.message||String(err)));}return;}
  const choice=prompt('Choose subscription duration:\n1 = One month\n2 = One year\n3 = Two years','1');if(choice===null)return;const plans={'1':{label:'1 month',months:1},'2':{label:'1 year',months:12},'3':{label:'2 years',months:24}};const plan=plans[choice.trim()];if(!plan)return toast('Invalid duration. Choose 1, 2, or 3.');
@@ -287,6 +294,7 @@ async function ensureBusinessAccount(){
  if(insertError)console.warn('Business account creation:',insertError.message);
 }
 async function loadAdminUsers(){
+ if(!isWizoAdmin){toast('Access denied');return}
  const status=$('adminUsersStatus'), tableEl=$('adminUsersTable');
  if(!status||!tableEl)return;
  status.textContent='Loading users…'; tableEl.innerHTML='';
