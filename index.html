@@ -96,15 +96,29 @@ let activeUserId=null;
 let isWizoAdmin=false;
 let activeRole='unknown';
 let activeBusinessId=null;
+let activeDataOwnerId=null;
 const rolePages={cashier:['pos','sales'],owner:['dashboard','pos','sales','inventory','purchases','expenses','restaurant','customers','suppliers','reports','branches','staff','settings'],super_admin:['dashboard','pos','sales','inventory','purchases','expenses','restaurant','customers','suppliers','reports','branches','staff','admin','settings']};
 function canOpenPage(p){return (rolePages[activeRole]||[]).includes(p)|| (isWizoAdmin&&p==='admin');}
 function applyRoleNavigation(){document.querySelectorAll('#nav button[data-page]').forEach(b=>{const p=b.dataset.page;b.classList.toggle('hidden',!canOpenPage(p));});const pill=$('rolePill');if(pill)pill.textContent=activeRole==='super_admin'?'Super Admin':activeRole==='owner'?'Owner':activeRole==='cashier'?'Cashier':'No role';}
 async function loadCurrentRole(user){
- activeBusinessId=null;activeRole='unknown';
+ activeBusinessId=null;activeDataOwnerId=user.id;activeRole='unknown';
  const {data:membership,error}=await supabaseClient.from('business_members').select('business_id,role,is_active').eq('user_id',user.id).eq('is_active',true).maybeSingle();
  if(error)throw new Error('Could not verify your staff role: '+error.message);
- if(membership){activeBusinessId=membership.business_id;activeRole=String(membership.role||'').toLowerCase();}
- else {const {data:account,error:accountError}=await supabaseClient.from('wizo_business_accounts').select('id').eq('owner_user_id',user.id).maybeSingle();if(accountError)throw new Error('Could not verify business owner role: '+accountError.message);if(account)activeRole='owner';}
+ if(membership){
+  activeBusinessId=membership.business_id;activeRole=String(membership.role||'').toLowerCase();
+  if(activeRole==='cashier'){
+   const {data:ownerMembership,error:ownerError}=await supabaseClient.from('business_members').select('user_id').eq('business_id',activeBusinessId).eq('role','owner').eq('is_active',true).maybeSingle();
+   if(ownerError)throw new Error('Could not find the business owner for this cashier: '+ownerError.message);
+   if(!ownerMembership?.user_id)throw new Error('This cashier account is not linked to an active business owner.');
+   activeDataOwnerId=ownerMembership.user_id;
+  }else if(activeRole==='owner'){
+   activeDataOwnerId=user.id;
+  }
+ }else{
+  const {data:account,error:accountError}=await supabaseClient.from('wizo_business_accounts').select('id').eq('owner_user_id',user.id).maybeSingle();
+  if(accountError)throw new Error('Could not verify business owner role: '+accountError.message);
+  if(account)activeRole='owner';
+ }
  isWizoAdmin=String(user.email||'').toLowerCase()==='wezirumar1988@gmail.com';
  if(isWizoAdmin)activeRole='super_admin';
  if(!rolePages[activeRole])throw new Error('Your account has no active Owner or Cashier role. Ask the business owner to assign access.');
@@ -130,9 +144,9 @@ function save(){
  syncTimer=setTimeout(syncBusinessData,500);
 }
 async function syncBusinessData(){
- if(!activeUserId)return;
+ if(!activeUserId||!activeDataOwnerId)return;
  try{
-  const {error}=await supabaseClient.from('business_data').upsert({user_id:activeUserId,data:db,updated_at:new Date().toISOString()},{onConflict:'user_id'});
+  const {error}=await supabaseClient.from('business_data').upsert({user_id:activeDataOwnerId,data:db,updated_at:new Date().toISOString()},{onConflict:'user_id'});
   if(error)throw error;
  }catch(err){console.error('Business data sync failed:',err);toast('Data save failed: '+(err.message||'Check Supabase table and RLS'));}
 }
@@ -140,7 +154,8 @@ async function loadBusinessData(){
  const {data:{user},error:userError}=await supabaseClient.auth.getUser();
  if(userError||!user)throw userError||new Error('Please sign in first');
  activeUserId=user.id;
- const {data,error}=await supabaseClient.from('business_data').select('data').eq('user_id',user.id).maybeSingle();
+ const dataOwnerId=activeDataOwnerId||user.id;
+ const {data,error}=await supabaseClient.from('business_data').select('data').eq('user_id',dataOwnerId).maybeSingle();
  if(error)throw error;
  if(data&&data.data){db={...structuredClone(initialDb),...data.data};}
  else {db=structuredClone(initialDb);}
@@ -234,7 +249,7 @@ async function showApp(){
  render();}
  catch(err){console.error(err);toast('Could not load your account data: '+(err.message||'Check Supabase setup'));}
 }
-async function logout(){await supabaseClient.auth.signOut();activeUserId=null;isWizoAdmin=false;activeRole='unknown';activeBusinessId=null;applyRoleNavigation();$('app').classList.add('hidden');$('login').classList.remove('hidden')}
+async function logout(){await supabaseClient.auth.signOut();activeUserId=null;isWizoAdmin=false;activeRole='unknown';activeBusinessId=null;activeDataOwnerId=null;applyRoleNavigation();$('app').classList.add('hidden');$('login').classList.remove('hidden')}
 supabaseClient.auth.getSession().then(({data})=>{if(data.session)showApp()});
 $('nav').addEventListener('click',e=>{let b=e.target.closest('button[data-page]');if(!b)return;if(!canOpenPage(b.dataset.page)){toast('Access denied: your role cannot open this page.');return}page=b.dataset.page;document.querySelectorAll('.nav button').forEach(x=>x.classList.toggle('active',x===b));render()});
 function head(title,desc,button=''){return `<div class="pagehead"><div><h1>${title}</h1><div class="sub">${desc}</div></div>${button}</div>`}
