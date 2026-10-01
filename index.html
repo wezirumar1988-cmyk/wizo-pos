@@ -170,8 +170,33 @@ async function submitRegistration(e){
  try{
   const {data,error}=await supabaseClient.auth.signUp({email,password,options:{emailRedirectTo:'https://wezirumar1988-cmyk.github.io/wizo-pos/',data:{business_name:businessName,owner_name:ownerName,phone:String(f.get('phone')||'').trim(),language:String(f.get('language')||'English'),currency:String(f.get('currency')||'ETB')}}});
   if(error)throw error;
-  if(data.session){toast('Account created and signed in. Business profile and POS data still need database connection.');showApp()}
-  else toast('Account created. Check your email to confirm, then sign in. Business profile saving is not connected yet.');
+  if(data.session){
+   const user=data.user||data.session.user;
+   if(!user?.id)throw new Error('Account created, but the signed-in user could not be identified.');
+   const now=new Date(),trialEnd=new Date(now);trialEnd.setDate(trialEnd.getDate()+15);
+   const {error:businessError}=await supabaseClient.from('wizo_business_accounts').upsert({
+    owner_user_id:user.id,
+    business_name:businessName,
+    owner_name:ownerName,
+    owner_email:email,
+    phone:String(f.get('phone')||'').trim()||null,
+    status:'Active',
+    subscription_status:'Trial',
+    trial_ends_at:trialEnd.toISOString(),
+    subscription_ends_at:null
+   },{onConflict:'owner_user_id'});
+   if(businessError)throw new Error('Account was created, but saving the business profile failed: '+businessError.message);
+   currency=String(f.get('currency')||'ETB');
+   lang=String(f.get('language')||'English');
+   localStorage.setItem('wizo_currency',currency);
+   localStorage.setItem('wizo_language',lang);
+   localStorage.setItem('wizo_business_name',businessName);
+   await loadBusinessData();
+   toast('Account and business profile created. Your 15-day trial has started.');
+   showApp();
+  }else{
+   toast('Account created. Check your email to confirm, then sign in. Your business profile will be saved after confirmation.');
+  }
   form.reset();
  }catch(err){toast(err.message||'Account creation failed')}
  finally{btn.disabled=false;btn.textContent='Create Account'}
